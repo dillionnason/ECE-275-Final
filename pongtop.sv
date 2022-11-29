@@ -60,11 +60,11 @@ module pongtop (
 	localparam PADDLE_HEIGHT = 10'd46;
 	localparam BALL_SIZE = 7;
 	
-	/* This tells the slow clock module how much to count. NEEDS TO BE 28 BITS. 
+	/* This tells the slow clock module how much to count. 
 	 * Since it's based on the 18.43MHz pixel clock 1 cycle is 54 ns, 
 	 * so total slow clock cycle will be MAX_COUNT * 54ns. 
 	 * Works best if it is a multiple of 307200 (1 frame) */
-	localparam MAX_COUNT = 28'd614400; 
+	localparam MAX_COUNT = 20'd614400; 
 
 	// Pong modules
 	reg slw_clk;
