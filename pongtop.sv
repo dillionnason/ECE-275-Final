@@ -68,7 +68,9 @@ module pongtop (
 
 	// Pong modules
 	reg slw_clk;
-	slow_clock #(
+
+	slow_clock 
+	#(
 		.MAX_COUNT(MAX_COUNT)
 	) 
 	slw_clk_mod(
@@ -91,6 +93,7 @@ module pongtop (
 	reg signed [10:0] ball_y;
 	reg score_right;
 	reg score_left;
+
 	ball 
 	#(
 		.BALL_SIZE(BALL_SIZE),
@@ -131,7 +134,9 @@ module pongtop (
 	reg [10:0] unsigned_ball_y;
 	assign unsigned_ball_x = $unsigned(ball_x);
 	assign unsigned_ball_y = $unsigned(ball_y);
-	display #(
+
+	display 
+	#(
 		.RIGHT_BOUNDARY(RIGHT_BOUNDARY),
 		.LEFT_BOUNDARY(LEFT_BOUNDARY),
 		.TOP_BOUNDARY(TOP_BOUNDARY),
