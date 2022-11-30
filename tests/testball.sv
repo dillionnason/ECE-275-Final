@@ -14,8 +14,8 @@ module testball();
 	initial begin
 		clk = 1'd1;
 		reset = 1'd1;
-		right_paddle = 10'd200;
-		left_paddle = 10'd200;
+		right_paddle = 10'd217;
+		left_paddle = 10'd217;
 		#20 reset = 1'd0;
 	end
 

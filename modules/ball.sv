@@ -5,10 +5,10 @@ module ball
 	parameter LEFT_BOUNDARY = 3,
 	parameter TOP_BOUNDARY = 3,
 	parameter BOTTOM_BOUNDARY = 477,
-	parameter PADDLE_HEIGHT = 10'd46,
-	parameter PADDLE_WIDTH = 10'd10,
-	parameter PLAYER_PADDLE_X = 10'd46,
-	parameter AI_PADDLE_X = 10'd620
+	parameter PADDLE_HEIGHT = 46,
+	parameter PADDLE_WIDTH = 10,
+	parameter PLAYER_PADDLE_X = 46,
+	parameter AI_PADDLE_X = 620
 )
 
 (
@@ -49,8 +49,8 @@ module ball
 		begin
 			pos_x <= 11'd320;
 			pos_y <= 11'd240;
-			v_x <= 3'd3;
-			v_y <= 3'd0;
+			v_x <= 3'd1;
+			v_y <= 3'd3;
 		end
 
 		else
@@ -65,15 +65,14 @@ module ball
 	// inputs + state -> next state
 	always @(pos_x, pos_y, v_x, v_y)  
 	begin
-		// 
-		if ((pos_x + v_x) >= AI_PADDLE_X) // is it entering the right paddles column
+		if ((pos_x + v_x) >= AI_PADDLE_X - BALL_SIZE) // is it entering the right paddles column
 		begin
 			if (((pos_y + v_y) >= right_paddle_pos) && ((pos_y + v_y) <= (right_paddle_pos + 11'd7))) // -1, 3 collision
 			begin
 				next_v_y <= 3'd3;
 				next_v_x <= -3'd1;
 				next_pos_y <= pos_y + v_y;
-				next_pos_x <= AI_PADDLE_X - 10'd3;
+				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 10'd1;
 				left_collision <= 1'b0;
 				right_collision <= 1'b0;
 			end
@@ -83,7 +82,7 @@ module ball
 				next_v_y <= 3'd2;
 				next_v_x <= -3'd2;
 				next_pos_y <= pos_y + v_y;
-				next_pos_x <= AI_PADDLE_X - 10'd3;
+				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 10'd1;
 				left_collision <= 1'b0;
 				right_collision <= 1'b0;
 			end
@@ -93,7 +92,7 @@ module ball
 				next_v_y <= 3'd1;
 				next_v_x <= -3'd3;
 				next_pos_y <= pos_y + v_y;
-				next_pos_x <= AI_PADDLE_X - 10'd3;
+				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 10'd1;
 				left_collision <= 1'b0;
 				right_collision <= 1'b0;
 			end
@@ -103,7 +102,7 @@ module ball
 				next_v_y <= 3'd0;
 				next_v_x <= -3'd3;
 				next_pos_y <= pos_y + v_y;
-				next_pos_x <= AI_PADDLE_X + 10'd3;
+				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 10'd1;
 				left_collision <= 1'b0;
 				right_collision <= 1'b0;
 			end
@@ -113,7 +112,7 @@ module ball
 				next_v_y <= -3'd1;
 				next_v_x <= -3'd3;
 				next_pos_y <= pos_y + v_y;
-				next_pos_x <= AI_PADDLE_X - 10'd3;
+				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 10'd1;
 				left_collision <= 1'b0;
 				right_collision <= 1'b0;
 			end
@@ -123,7 +122,7 @@ module ball
 				next_v_y <= -3'd2;
 				next_v_x <= -3'd2;
 				next_pos_y <= pos_y + v_y;
-				next_pos_x <= AI_PADDLE_X - 10'd3;
+				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 10'd1;
 				left_collision <= 1'b0;
 				right_collision <= 1'b0;
 			end
@@ -133,51 +132,48 @@ module ball
 				next_v_y <= -3'd3;
 				next_v_x <= -3'd1;
 				next_pos_y <= pos_y + v_y;
-				next_pos_x <= AI_PADDLE_X - 10'd3;
+				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 10'd1;
 				left_collision <= 1'b0;
 				right_collision <= 1'b0;
 			end
 		end
 
-		else
+		if ((pos_y + v_y) <= TOP_BOUNDARY) 	// top collision
 		begin
-			if ((pos_y + v_y) <= TOP_BOUNDARY) 	// top collision
-			begin
-				next_v_y <= -v_y;
-				next_v_x <= v_x;
-				next_pos_y <= TOP_BOUNDARY + 11'd1;
-				next_pos_x <= pos_x + v_x;
-				left_collision <= 1'b0;
-				right_collision <= 1'b0;
-			end
+			next_v_y <= -v_y;
+			next_v_x <= v_x;
+			next_pos_y <= TOP_BOUNDARY + 11'd1;
+			next_pos_x <= pos_x + v_x;
+			left_collision <= 1'b0;
+			right_collision <= 1'b0;
+		end
 
-			else if ((pos_y + v_y) >= (BOTTOM_BOUNDARY - BALL_SIZE)) // bottom collision 
-			begin
-				next_v_y <= -v_y;
-				next_v_x <= v_x;
-				next_pos_y <= BOTTOM_BOUNDARY - 11'd1 - BALL_SIZE;
-				next_pos_x <= pos_x + v_x;
-				left_collision <= 1'b0;
-				right_collision <= 1'b0;
-			end
+		else if ((pos_y + v_y) >= (BOTTOM_BOUNDARY - BALL_SIZE)) // bottom collision 
+		begin
+			next_v_y <= -v_y;
+			next_v_x <= v_x;
+			next_pos_y <= BOTTOM_BOUNDARY - 11'd1 - BALL_SIZE;
+			next_pos_x <= pos_x + v_x;
+			left_collision <= 1'b0;
+			right_collision <= 1'b0;
+		end
 
-			/* the next two conditions only need to flip the score bits
-			 * as once the score module has updated it will reset the rest of the
-			 * modules, including this one */
-			else if ((pos_x + v_x) >= (RIGHT_BOUNDARY - BALL_SIZE)) // right collision
-				right_collision <= 1'b1;
-			else if ((pos_x + v_x + BALL_SIZE) <= LEFT_BOUNDARY) // left collision
-				left_collision <= 1'b1;
+		/* the next two conditions only need to flip the score bits
+		 * as once the score module has updated it will reset the rest of the
+		 * modules, including this one */
+		else if ((pos_x + v_x) >= (RIGHT_BOUNDARY - BALL_SIZE)) // right collision
+			right_collision <= 1'b1;
+		else if ((pos_x + v_x + BALL_SIZE) <= LEFT_BOUNDARY) // left collision
+			left_collision <= 1'b1;
 
-			else  // no collision
-			begin
-				next_v_y <= v_y;
-				next_v_x <= v_x;
-				next_pos_x <= pos_x + v_x;
-				next_pos_y <= pos_y + v_y;
-				left_collision <= 1'b0;
-				right_collision <= 1'b0;
-			end
+		else  // no collision
+		begin
+			next_v_y <= v_y;
+			next_v_x <= v_x;
+			next_pos_x <= pos_x + v_x;
+			next_pos_y <= pos_y + v_y;
+			left_collision <= 1'b0;
+			right_collision <= 1'b0;
 		end
 	end
 

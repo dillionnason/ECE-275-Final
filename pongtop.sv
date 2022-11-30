@@ -50,14 +50,15 @@ module pongtop (
 	wire reset = ~BUTTON[2];
 
 	// Parameters for the pong modules
+	// Need to be signed
 	localparam RIGHT_BOUNDARY = 637;
 	localparam LEFT_BOUNDARY = 3;
 	localparam TOP_BOUNDARY = 3;
 	localparam BOTTOM_BOUNDARY = 477;
-	localparam PLAYER_PADDLE_X = 10'd10;
-	localparam AI_PADDLE_X = 10'd620;
-	localparam PADDLE_WIDTH = 10'd10;
-	localparam PADDLE_HEIGHT = 10'd46;
+	localparam PLAYER_PADDLE_X = 10;
+	localparam AI_PADDLE_X = 620;
+	localparam PADDLE_WIDTH = 10;
+	localparam PADDLE_HEIGHT = 46;
 	localparam BALL_SIZE = 7;
 	
 	/* This tells the slow clock module how much to count. NEEDS TO BE 28 BITS. 
