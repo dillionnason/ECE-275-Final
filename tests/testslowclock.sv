@@ -4,7 +4,11 @@ module testslowclock();
 	reg reset;
 	wire clock;
 
-	slow_clock slwclk (fastclk, reset, clock);
+	slow_clock 
+	#(
+		.MAX_COUNT(614400)
+	)
+	slwclk (fastclk, reset, clock);
 
 	initial begin
 		fastclk = 0;

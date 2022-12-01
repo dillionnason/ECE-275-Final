@@ -39,8 +39,11 @@ module ball
 	reg right_collision;
 
 	// passes the paddle positions to the procedural blocks
-	wire signed [10:0] left_paddle_pos = { 1'b0, left_paddle_y[9:0] };
-	wire signed [10:0] right_paddle_pos = { 1'b0, right_paddle_y[9:0] };
+	wire [10:0] left_paddle_pos_unsigned = { 1'b0, left_paddle_y[9:0] };
+	wire [10:0] right_paddle_pos_unsigned = { 1'b0, right_paddle_y[9:0] };
+
+	wire signed [10:0] left_paddle_pos = $signed(left_paddle_pos_unsigned);
+	wire signed [10:0] right_paddle_pos = $signed(right_paddle_pos_unsigned);
 
 	// update state
 	always @(posedge clk or posedge reset) 
@@ -63,76 +66,76 @@ module ball
 	end
 
 	// inputs + state -> next state
-	always @(pos_x, pos_y, v_x, v_y)  
+	always @(pos_x, pos_y, v_x, v_y, right_paddle_pos, left_paddle_pos)  
 	begin
-		if ((pos_x + v_x) >= AI_PADDLE_X - BALL_SIZE) // is it entering the right paddles column
+		if ((pos_x + v_x) >= (AI_PADDLE_X - BALL_SIZE)) // is it entering the right paddles column
 		begin
 			if (((pos_y + v_y) >= right_paddle_pos) && ((pos_y + v_y) <= (right_paddle_pos + 11'd7))) // -1, 3 collision
 			begin
 				next_v_y <= 3'd3;
 				next_v_x <= -3'd1;
 				next_pos_y <= pos_y + v_y;
-				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 10'd1;
+				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 1;
 				left_collision <= 1'b0;
 				right_collision <= 1'b0;
 			end
 
-			if (((pos_y + v_y) >= (right_paddle_pos + 11'd8)) && ((pos_y + v_y) <= (right_paddle_pos + 11'd14))) // -2, 2 collision
+			else if (((pos_y + v_y) >= (right_paddle_pos + 11'd8)) && ((pos_y + v_y) <= (right_paddle_pos + 11'd14))) // -2, 2 collision
 			begin
 				next_v_y <= 3'd2;
 				next_v_x <= -3'd2;
 				next_pos_y <= pos_y + v_y;
-				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 10'd1;
+				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 1;
 				left_collision <= 1'b0;
 				right_collision <= 1'b0;
 			end
 
-			if (((pos_y + v_y) >= (right_paddle_pos + 11'd15)) && ((pos_y + v_y) <= (right_paddle_pos + 11'd21))) // -3, 1 collision
+			else if (((pos_y + v_y) >= (right_paddle_pos + 11'd15)) && ((pos_y + v_y) <= (right_paddle_pos + 11'd21))) // -3, 1 collision
 			begin
 				next_v_y <= 3'd1;
 				next_v_x <= -3'd3;
 				next_pos_y <= pos_y + v_y;
-				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 10'd1;
+				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 1;
 				left_collision <= 1'b0;
 				right_collision <= 1'b0;
 			end
 
-			if (((pos_y + v_y) >= (right_paddle_pos + 11'd22)) && ((pos_y + v_y) <= (right_paddle_pos + 11'd28))) // -3, 0 collision
+			else if (((pos_y + v_y) >= (right_paddle_pos + 11'd22)) && ((pos_y + v_y) <= (right_paddle_pos + 11'd28))) // -3, 0 collision
 			begin
 				next_v_y <= 3'd0;
 				next_v_x <= -3'd3;
 				next_pos_y <= pos_y + v_y;
-				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 10'd1;
+				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 1;
 				left_collision <= 1'b0;
 				right_collision <= 1'b0;
 			end
 
-			if (((pos_y + v_y) >= (right_paddle_pos + 11'd29)) && ((pos_y + v_y) <= (right_paddle_pos + 11'd35))) // -3, -1 collision
+			else if (((pos_y + v_y) >= (right_paddle_pos + 11'd29)) && ((pos_y + v_y) <= (right_paddle_pos + 11'd35))) // -3, -1 collision
 			begin
 				next_v_y <= -3'd1;
 				next_v_x <= -3'd3;
 				next_pos_y <= pos_y + v_y;
-				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 10'd1;
+				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 1;
 				left_collision <= 1'b0;
 				right_collision <= 1'b0;
 			end
 
-			if (((pos_y + v_y) >= (right_paddle_pos + 11'd36)) && ((pos_y + v_y) <= (right_paddle_pos + 11'd42))) // -2, -2 collision
+			else if (((pos_y + v_y) >= (right_paddle_pos + 11'd36)) && ((pos_y + v_y) <= (right_paddle_pos + 11'd42))) // -2, -2 collision
 			begin
 				next_v_y <= -3'd2;
 				next_v_x <= -3'd2;
 				next_pos_y <= pos_y + v_y;
-				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 10'd1;
+				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 1;
 				left_collision <= 1'b0;
 				right_collision <= 1'b0;
 			end
 
-			if (((pos_y + v_y) >= (right_paddle_pos + 11'd43)) && ((pos_y + v_y) <= (right_paddle_pos + 11'd49))) // -1, -3 collision
+			else if (((pos_y + v_y) >= (right_paddle_pos + 11'd43)) && ((pos_y + v_y) <= (right_paddle_pos + 11'd49))) // -1, -3 collision
 			begin
 				next_v_y <= -3'd3;
 				next_v_x <= -3'd1;
 				next_pos_y <= pos_y + v_y;
-				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 10'd1;
+				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 1;
 				left_collision <= 1'b0;
 				right_collision <= 1'b0;
 			end

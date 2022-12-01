@@ -57,7 +57,7 @@ module pongtop (
 	localparam BOTTOM_BOUNDARY = 477;
 	localparam PLAYER_PADDLE_X = 10;
 	localparam AI_PADDLE_X = 620;
-	localparam PADDLE_WIDTH = 10;
+	localparam PADDLE_WIDTH = 5;
 	localparam PADDLE_HEIGHT = 46;
 	localparam BALL_SIZE = 7;
 	
@@ -82,6 +82,8 @@ module pongtop (
 
 	// Paddle state and player input
 	// reg paddle_state [19:0];
+	wire [9:0] left_paddle_y = 10'd217;
+	wire [9:0] right_paddle_y = 10'd217;
 	// paddles paddle_mod(
 	// 	.clk(slwclk), 
 	// 	.reset(BUTTON[2]), 
@@ -106,6 +108,8 @@ module pongtop (
 	ball_mod(
 		.clk(slw_clk),
 		.reset(reset),
+		.left_paddle_y(left_paddle_y),
+		.right_paddle_y(right_paddle_y),
 		.score_right(score_right),
 		.score_left(score_left),
 		.ball_pos_x(ball_x),
