@@ -12,28 +12,53 @@ module score (
 	// scores
 	reg [2:0] left_score;
 	reg [2:0] right_score;
+	reg [2:0] next_left_score;
+	reg [2:0] next_right_score;
 
 	// reset state
-	always @(posedge reset) 
+	always @(posedge reset or posedge clk) 
+	begin
+	if (reset)
 	begin
 		left_score <= 3'b000;
 		right_score <= 3'b000;
+		end
+		else 
+		begin
+		left_score <= next_left_score;
+		right_score <= next_right_score;
+		
+		end
+		
 	end
+	
 
 	// score incrementing
-	always @(score_left, score_right) 
+	always @(next_left_score, next_right_score) 
 	begin
-		if (score_left)
-			left_score = left_score + 3'd1;
+		if (next_left_score)
+			next_left_score = left_score + 3'd1;
+			
+			else
+			
+			next_left_score = left_score;
 		
-		if (score_right) 
-			right_score = right_score + 3'd1;
-	end
+		if (next_right_score) 
+			next_right_score = right_score + 3'd1;
+			
+			else
+			
+			next_right_score = right_score;
+	end 
 
 	// convert left score to BCD
 	wire [2:0] left_binary_in = left_score[2:0];
 	reg [2:0] left_binary;
 	reg [3:0] left_bcd;
+	
+	wire [2:0] right_binary_in = right_score[2:0];
+	reg [2:0] right_binary;
+	reg [3:0] right_bcd;
 
 	always @(posedge clk) 
 	begin
@@ -43,7 +68,7 @@ module score (
 			for (int i = 0; i < 3; i = i + 1) 
 			begin
 					left_bcd = left_bcd << 1;
-					left_bcd[0] = left_binary[3];
+					left_bcd[0] = left_binary[2];
 					left_binary = left_binary << 1;
 
 					if (left_bcd >= 4'd5)
@@ -51,13 +76,39 @@ module score (
 			end
 
 			left_bcd = left_bcd << 1;
-			left_bcd[0] = left_binary[3];
+			left_bcd[0] = left_binary[2];
+	end
+	
+	
+	always @(posedge clk) 
+	begin
+			right_binary = right_binary_in;
+			right_bcd = 4'd0;
+
+			for (int i = 0; i < 3; i = i + 1) 
+			begin
+					right_bcd = right_bcd << 1;
+					right_bcd[0] = right_binary[2];
+					right_binary = right_binary << 1;
+
+					if (right_bcd >= 4'd5)
+							right_bcd = right_bcd + 4'd3;
+			end
+
+			right_bcd = right_bcd << 1;
+			right_bcd[0] = right_binary[2];
 	end
 
 	// convert scores to BCD
   BCD_Display left_score_hex (
 		.D(left_bcd[3:0]),
 		.LED(left_hex[6:0])
+	);
+
+	
+	BCD_Display right_score_hex (
+	.D(right_bcd[3:0]),
+	.LED(right_hex[6:0])
 	);
 
 	// score outputs
