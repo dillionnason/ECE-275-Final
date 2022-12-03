@@ -1,11 +1,29 @@
 CC = quartus_sh
 PGM = quartus_pgm
 
+MAP = quartus_map
+FIT = quartus_fit
+ASM = quartus_asm
+STA = quartus_sta
+
+SETTINGS_ON = --read_settings_files=on --write_settings_files=off 
+SETTINGS_OFF = --read_settings_files=off --write_settings_files=off 
+
+MAP_FLAGS = --effort=fast --incremental_compilation=full_incremental_compilation
+FIT_FLAGS = --effort=fast --incremental_signaltap --optimize_io_register_for_timing=off
+
 SRC = $(wildcard *.sv)
 BIN = $(wildcard *.sof)
 
-all: $(SRC)
+all: fast program
+
+full: $(SRC)
 	$(CC) --flow compile $^ 
+
+fast:
+	$(MAP) $(SETTINGS_ON) $(MAP_FLAGS) pongtop -c pongtop
+	$(FIT) $(SETTINGS_OFF) $(FIT_FLAGS) pongtop -c pongtop
+	$(ASM) $(SETTINGS_OFF) pongtop -c pongtop
 
 devices:
 	$(PGM) --auto

@@ -46,8 +46,6 @@ module pongtop (
 		.pixel_cnt(pixel_cnt)
 	);
 
-	// Invert the buttons as they are active low
-	wire reset = ~BUTTON[2];
 
 	// Parameters for the pong modules
 	// Need to be signed
@@ -57,7 +55,7 @@ module pongtop (
 	localparam BOTTOM_BOUNDARY = 477;
 	localparam PLAYER_PADDLE_X = 10;
 	localparam AI_PADDLE_X = 620;
-	localparam PADDLE_WIDTH = 5;
+	localparam PADDLE_WIDTH = 10;
 	localparam PADDLE_HEIGHT = 46;
 	localparam BALL_SIZE = 7;
 	
@@ -83,7 +81,7 @@ module pongtop (
 	// Paddle state and player input
 	// reg paddle_state [19:0];
 	wire [9:0] left_paddle_y = 10'd217;
-	wire [9:0] right_paddle_y = 10'd217;
+	wire [9:0] right_paddle_y = 10'd247;
 	// paddles paddle_mod(
 	// 	.clk(slwclk), 
 	// 	.reset(BUTTON[2]), 
@@ -115,6 +113,9 @@ module pongtop (
 		.ball_pos_x(ball_x),
 		.ball_pos_y(ball_y)
 	);
+
+	wire score_reset = (score_left || score_right) ? 1 : 0;
+	wire reset = (~BUTTON[2] || score_reset) ? 1 : 0;
 
 	// Score and game over states
 	// reg [5:0] current_score;
@@ -154,6 +155,8 @@ module pongtop (
 	display_mod(
 		.ball_x(unsigned_ball_x[9:0]),
 		.ball_y(unsigned_ball_y[9:0]),
+		.left_paddle(left_paddle_y),
+		.right_paddle(right_paddle_y),
 		.X_pix(X_pix),
 		.Y_pix(Y_pix),
 		.draw(draw)

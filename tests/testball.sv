@@ -16,7 +16,7 @@ module testball();
 		reset = 1'd1;
 		right_paddle = 10'd217;
 		left_paddle = 10'd217;
-		#20 reset = 1'd0;
+		#54 reset = 1'd0;
 	end
 
 	ball ball_mod(
@@ -31,17 +31,7 @@ module testball();
 	);
 
 	always begin
-		#20;
-		if (score_right || score_left) 
-		begin
-			clk = ~clk;
-			reset = ~reset;
-			#20; 
-			clk = ~clk;
-			reset = ~reset;
-		end
-		else 
-			clk = ~clk;
+		#54 clk = ~clk;
 	end
 
 endmodule
