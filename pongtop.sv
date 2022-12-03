@@ -1,7 +1,7 @@
 `include "modules/slow_clock.sv"
 `include "modules/ball.sv"
-// `include "modules/paddles.sv"
-`include "modules/score.sv"
+`include "modules/paddles.sv"
+// `include "modules/score.sv"
 `include "modules/DE0_VGA.v"
 `include "modules/display.sv"
 
@@ -81,15 +81,6 @@ module pongtop (
 		.slowclock(slw_clk)
 	);
 
-	// Paddle state and player input
-	// reg paddle_state [19:0];
-	// paddles paddle_mod(
-	// 	.clk(slwclk), 
-	// 	.reset(BUTTON[2]), 
-	// 	.button_up(BUTTON[0]),
-	// 	.button_down(BUTTON[1]),
-	// 	.paddle_state(paddle_state[19:0]));
-
 	// Ball state, collision detection, score detection
 	reg signed [10:0] ball_x;
 	reg signed [10:0] ball_y;
@@ -113,12 +104,25 @@ module pongtop (
 		.ball_pos_y(ball_y)
 	);
 
-	score score_mod(
-		.clk(CLOCK_50),
-		.reset(BUTTON[2]),
-		.right_hex(HEX0_D),
-		.left_hex(HEX1_D)
+	// Paddle state and player input
+	reg [9:0] player_paddle_state; 
+	reg [9:0] ai_paddle_state;
+	paddles paddle_mod (
+		.clk(slw_clk),
+		.reset(reset),
+		.button_up(BUTTON[0]),
+		.button_down(BUTTON[1]),
+		.ball_pos_y(ball_y),
+		.player_paddle(player_paddle_state),
+		.ai_paddle(ai_paddle_state)
 	);
+
+	// score score_mod(
+	// 	.clk(CLOCK_50),
+	// 	.reset(BUTTON[2]),
+	// 	.right_hex(HEX0_D),
+	// 	.left_hex(HEX1_D)
+	// );
 
 	// This module holds all of the different draw modules (paddles, screen edge,
 	// ball, score) and outputs when pixels should be white or black
