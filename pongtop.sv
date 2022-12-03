@@ -1,13 +1,15 @@
 `include "modules/slow_clock.sv"
 `include "modules/ball.sv"
 // `include "modules/paddles.sv"
-// `include "modules/score.sv"
+`include "modules/score.sv"
 `include "modules/DE0_VGA.v"
 `include "modules/display.sv"
 
 module pongtop (
+	input CLOCK_50,
 	input [2:0] BUTTON,
-	input wire CLOCK_50,
+	output [6:0] HEX0_D, 	// Right score output
+	output [6:0] HEX1_D,  // Left score output
 	output wire	[3:0]	VGA_R,		//Output Red
 	output wire	[3:0]	VGA_G,		//Output Green
 	output wire	[3:0]	VGA_B,		//Output Blue
