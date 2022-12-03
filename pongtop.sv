@@ -81,7 +81,7 @@ module pongtop (
 	// Paddle state and player input
 	// reg paddle_state [19:0];
 	wire [9:0] left_paddle_y = 10'd217;
-	wire [9:0] right_paddle_y = 10'd247;
+	wire [9:0] right_paddle_y = 10'd217;
 	// paddles paddle_mod(
 	// 	.clk(slwclk), 
 	// 	.reset(BUTTON[2]), 
@@ -101,7 +101,11 @@ module pongtop (
 		.RIGHT_BOUNDARY(RIGHT_BOUNDARY),
 		.LEFT_BOUNDARY(LEFT_BOUNDARY),
 		.TOP_BOUNDARY(TOP_BOUNDARY),
-		.BOTTOM_BOUNDARY(BOTTOM_BOUNDARY)
+		.BOTTOM_BOUNDARY(BOTTOM_BOUNDARY),
+		.PADDLE_HEIGHT(PADDLE_HEIGHT),
+		.PADDLE_WIDTH(PADDLE_WIDTH),
+		.PLAYER_PADDLE_X(PLAYER_PADDLE_X),
+		.AI_PADDLE_X(AI_PADDLE_X)
 	)
 	ball_mod(
 		.clk(slw_clk),

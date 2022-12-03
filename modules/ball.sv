@@ -7,7 +7,7 @@ module ball
 	parameter BOTTOM_BOUNDARY = 477,
 	parameter PADDLE_HEIGHT = 46,
 	parameter PADDLE_WIDTH = 10,
-	parameter PLAYER_PADDLE_X = 46,
+	parameter PLAYER_PADDLE_X = 10,
 	parameter AI_PADDLE_X = 620
 )
 
@@ -57,7 +57,7 @@ module ball
 			pos_x <= 11'd320;
 			pos_y <= 11'd240;
 			v_x <= 3'd1;
-			v_y <= 3'd3;
+			v_y <= 3'd0;
 			left_collision <= 1'b0;
 			right_collision <= 1'b0;
 		end
@@ -78,14 +78,17 @@ module ball
 	begin
 		paddle_collision = 1'b0;
 
+		/*****************************************************************
+		 * 									RIGHT PADDLE COLLISION 										   *
+		 *****************************************************************/
 		if ((pos_x + v_x) >= (AI_PADDLE_X - BALL_SIZE) && (pos_x + v_x) <= (AI_PADDLE_X + PADDLE_WIDTH)) // is it entering the right paddles column
 		begin
 			paddle_collision = 1'b1;
 
-			if ( ((pos_y + v_y) >= right_paddle_pos) && ((pos_y + v_y) <= (right_paddle_pos + 11'd7)) ) // -1, -3 collision
+			if ( ((pos_y + v_y) >= right_paddle_pos) && ((pos_y + v_y) <= (right_paddle_pos + 11'd7)) ) // -2, -3 collision
 			begin
 				next_v_y <= -3'd3;
-				next_v_x <= -3'd1;
+				next_v_x <= -3'd2;
 				next_pos_y <= pos_y + v_y;
 				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 1;
 				next_left_collision <= 1'b0;
@@ -105,7 +108,7 @@ module ball
 			else if (((pos_y + v_y) >= (right_paddle_pos + 11'd15)) && ((pos_y + v_y) <= (right_paddle_pos + 11'd21))) // -3, -1 collision
 			begin
 				next_v_y <= -3'd1;
-				next_v_x <= -3'd3;
+				next_v_x <= -3'd2;
 				next_pos_y <= pos_y + v_y;
 				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 1;
 				next_left_collision <= 1'b0;
@@ -115,7 +118,7 @@ module ball
 			else if (((pos_y + v_y) >= (right_paddle_pos + 11'd22)) && ((pos_y + v_y) <= (right_paddle_pos + 11'd28))) // -3, 0 collision
 			begin
 				next_v_y <= 3'd0;
-				next_v_x <= -3'd3;
+				next_v_x <= -3'd2;
 				next_pos_y <= pos_y + v_y;
 				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 1;
 				next_left_collision <= 1'b0;
@@ -125,7 +128,7 @@ module ball
 			else if (((pos_y + v_y) >= (right_paddle_pos + 11'd29)) && ((pos_y + v_y) <= (right_paddle_pos + 11'd35))) // -3, 1 collision
 			begin
 				next_v_y <= 3'd1;
-				next_v_x <= -3'd3;
+				next_v_x <= -3'd2;
 				next_pos_y <= pos_y + v_y;
 				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 1;
 				next_left_collision <= 1'b0;
@@ -145,7 +148,7 @@ module ball
 			else if (((pos_y + v_y) >= (right_paddle_pos + 11'd43)) && ((pos_y + v_y) <= (right_paddle_pos + 11'd49))) // -1, 3 collision
 			begin
 				next_v_y <= 3'd3;
-				next_v_x <= -3'd1;
+				next_v_x <= -3'd2;
 				next_pos_y <= pos_y + v_y;
 				next_pos_x <= AI_PADDLE_X - BALL_SIZE - 1;
 				next_left_collision <= 1'b0;
@@ -156,6 +159,90 @@ module ball
 				paddle_collision = 1'b0;
 		end
 
+		/*****************************************************************
+		 * 									LEFT PADDLE COLLISION 										   *
+		 *****************************************************************/
+		else if ((pos_x + v_x) <= (PLAYER_PADDLE_X + PADDLE_WIDTH) && (pos_x + v_x) >= (PLAYER_PADDLE_X)) // is it entering the left paddles column
+		begin
+			paddle_collision = 1'b1;
+
+			if ( ((pos_y + v_y) >= left_paddle_pos) && ((pos_y + v_y) <= (left_paddle_pos + 11'd7)) ) // 2, -3 collision
+			begin
+				next_v_y <= -3'd3;
+				next_v_x <= 3'd2;
+				next_pos_y <= pos_y + v_y;
+				next_pos_x <= PLAYER_PADDLE_X + PADDLE_WIDTH + 1;
+				next_left_collision <= 1'b0;
+				next_right_collision <= 1'b0;
+			end
+
+			else if (((pos_y + v_y) >= (left_paddle_pos + 11'd8)) && ((pos_y + v_y) <= (left_paddle_pos + 11'd14))) // 2, -2 collision
+			begin
+				next_v_y <= -3'd2;
+				next_v_x <= 3'd2;
+				next_pos_y <= pos_y + v_y;
+				next_pos_x <= PLAYER_PADDLE_X + PADDLE_WIDTH + 1;
+				next_left_collision <= 1'b0;
+				next_right_collision <= 1'b0;
+			end
+
+			else if (((pos_y + v_y) >= (left_paddle_pos + 11'd15)) && ((pos_y + v_y) <= (left_paddle_pos + 11'd21))) // 3, -1 collision
+			begin
+				next_v_y <= -3'd1;
+				next_v_x <= 3'd2;
+				next_pos_y <= pos_y + v_y;
+				next_pos_x <= PLAYER_PADDLE_X + PADDLE_WIDTH + 1;
+				next_left_collision <= 1'b0;
+				next_right_collision <= 1'b0;
+			end
+
+			else if (((pos_y + v_y) >= (left_paddle_pos + 11'd22)) && ((pos_y + v_y) <= (left_paddle_pos + 11'd28))) // 3, 0 collision
+			begin
+				next_v_y <= 3'd0;
+				next_v_x <= 3'd2;
+				next_pos_y <= pos_y + v_y;
+				next_pos_x <= PLAYER_PADDLE_X + PADDLE_WIDTH + 1;
+				next_left_collision <= 1'b0;
+				next_right_collision <= 1'b0;
+			end
+
+			else if (((pos_y + v_y) >= (left_paddle_pos + 11'd29)) && ((pos_y + v_y) <= (left_paddle_pos + 11'd35))) // 3, 1 collision
+			begin
+				next_v_y <= 3'd1;
+				next_v_x <= 3'd2;
+				next_pos_y <= pos_y + v_y;
+				next_pos_x <= PLAYER_PADDLE_X + PADDLE_WIDTH + 1;
+				next_left_collision <= 1'b0;
+				next_right_collision <= 1'b0;
+			end
+
+			else if (((pos_y + v_y) >= (left_paddle_pos + 11'd36)) && ((pos_y + v_y) <= (left_paddle_pos + 11'd42))) // 2, 2 collision
+			begin
+				next_v_y <= 3'd2;
+				next_v_x <= 3'd2;
+				next_pos_y <= pos_y + v_y;
+				next_pos_x <= PLAYER_PADDLE_X + PADDLE_WIDTH + 1;
+				next_left_collision <= 1'b0;
+				next_right_collision <= 1'b0;
+			end
+
+			else if (((pos_y + v_y) >= (left_paddle_pos + 11'd43)) && ((pos_y + v_y) <= (left_paddle_pos + 11'd49))) // 1, 3 collision
+			begin
+				next_v_y <= 3'd3;
+				next_v_x <= 3'd2;
+				next_pos_y <= pos_y + v_y;
+				next_pos_x <= PLAYER_PADDLE_X + PADDLE_WIDTH + 1;
+				next_left_collision <= 1'b0;
+				next_right_collision <= 1'b0;
+			end
+
+			else 
+				paddle_collision = 1'b0;
+		end
+
+		/*****************************************************************
+		 * 											EDGE COLLISIONS    										   *
+		 *****************************************************************/
 		if (paddle_collision == 1'b0)
 		begin
 			if ((pos_y + v_y) <= TOP_BOUNDARY) 	// top collision
