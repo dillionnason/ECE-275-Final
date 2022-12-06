@@ -1,9 +1,9 @@
-`include "modules/slow_clock.sv"
-`include "modules/ball.sv"
-`include "modules/paddles.sv"
-// `include "modules/score.sv"
-`include "modules/DE0_VGA.v"
-`include "modules/display.sv"
+`include "C:\altera\13.0sp1\ModelSim Files and Modules for final Project\VGA\pong\Modules\slow_clock.sv"
+`include "C:\altera\13.0sp1\ModelSim Files and Modules for final Project\VGA\pong\Modules\ball.sv"
+`include "C:\altera\13.0sp1\ModelSim Files and Modules for final Project\VGA\pong\Modules\paddles.sv"
+`include "C:\altera\13.0sp1\ModelSim Files and Modules for final Project\VGA\pong\Modules\score.sv"
+`include "C:\altera\13.0sp1\ModelSim Files and Modules for final Project\VGA\pong\Modules\DE0_VGA.v"
+`include "C:\altera\13.0sp1\ModelSim Files and Modules for final Project\VGA\pong\Modules\display.sv"
 
 module pongtop (
 	input CLOCK_50,
@@ -81,6 +81,15 @@ module pongtop (
 		.slowclock(slw_clk)
 	);
 
+	// Paddle state and player input
+	// reg paddle_state [19:0];
+	// paddles paddle_mod(
+	// 	.clk(slwclk), 
+	// 	.reset(BUTTON[2]), 
+	// 	.button_up(BUTTON[0]),
+	// 	.button_down(BUTTON[1]),
+	// 	.paddle_state(paddle_state[19:0]));
+
 	// Ball state, collision detection, score detection
 	reg signed [10:0] ball_x;
 	reg signed [10:0] ball_y;
@@ -104,25 +113,12 @@ module pongtop (
 		.ball_pos_y(ball_y)
 	);
 
-	// Paddle state and player input
-	reg [9:0] player_paddle_state; 
-	reg [9:0] ai_paddle_state;
-	paddles paddle_mod (
-		.clk(slw_clk),
+	score score_mod(
+		.clk(CLOCK_50),
 		.reset(reset),
-		.button_up(BUTTON[0]),
-		.button_down(BUTTON[1]),
-		.ball_pos_y(ball_y),
-		.player_paddle(player_paddle_state),
-		.ai_paddle(ai_paddle_state)
+		.right_hex(HEX0_D),
+		.left_hex(HEX1_D)
 	);
-
-	// score score_mod(
-	// 	.clk(CLOCK_50),
-	// 	.reset(BUTTON[2]),
-	// 	.right_hex(HEX0_D),
-	// 	.left_hex(HEX1_D)
-	// );
 
 	// This module holds all of the different draw modules (paddles, screen edge,
 	// ball, score) and outputs when pixels should be white or black
@@ -137,6 +133,9 @@ module pongtop (
 	reg [10:0] unsigned_ball_y;
 	assign unsigned_ball_x = $unsigned(ball_x);
 	assign unsigned_ball_y = $unsigned(ball_y);
+	
+	wire [9:0] player_paddle;
+	wire [9:0] ai_paddle;
 
 	display 
 	#(
@@ -154,7 +153,20 @@ module pongtop (
 		.ball_y(unsigned_ball_y[9:0]),
 		.X_pix(X_pix),
 		.Y_pix(Y_pix),
-		.draw(draw)
+		.draw(draw),
+		.player_paddle(player_paddle),
+		.ai_paddle(ai_paddle)
+	);
+	
+	
+    paddles moving_mod(
+	.clk(slw_clk),
+	.reset(reset),
+	.button_up(~BUTTON[1]),
+	.button_down(~BUTTON[0]),
+	.ball_pos_y(ball_y),
+	.player_paddle(player_paddle),
+	.ai_paddle(ai_paddle)
 	);
 
 	// Takes the output from the display module and tells the VGA driver what to
