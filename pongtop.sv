@@ -99,6 +99,7 @@ module pongtop (
 	reg signed [10:0] ball_y;
 	reg score_right;
 	reg score_left;
+	wire game_over;
 
 	ball 
 	#(
@@ -115,6 +116,7 @@ module pongtop (
 	ball_mod(
 		.clk(slw_clk),
 		.reset(reset),
+		.game_over(game_over),
 		.left_paddle_y(left_paddle_y),
 		.right_paddle_y(right_paddle_y),
 		.score_right(score_right),
@@ -129,7 +131,8 @@ module pongtop (
 		.score_right(score_right),
 		.score_left(score_left),
 		.right_hex(HEX0_D[6:0]),
-		.left_hex(HEX1_D[6:0])
+		.left_hex(HEX1_D[6:0]),
+		.game_over(game_over)
 	);
 
 	// assign LEDG[2:0] = score_right[2:0];
