@@ -85,8 +85,8 @@ module pongtop (
 
 	// Paddle state and player input
 	// reg paddle_state [19:0];
-	wire [9:0] left_paddle_y = 10'd257;
-	wire [9:0] right_paddle_y = 10'd217;
+	wire [9:0] left_paddle_y = 10'd217;
+	wire [9:0] right_paddle_y = 10'd257;
 	// paddles paddle_mod(
 	// 	.clk(slwclk), 
 	// 	.reset(BUTTON[2]), 
@@ -97,8 +97,6 @@ module pongtop (
 	// Ball state, collision detection, score detection
 	reg signed [10:0] ball_x;
 	reg signed [10:0] ball_y;
-	wire score_reset;
-	wire ball_reset = (reset || score_reset) ? 1 : 0;
 	reg score_right;
 	reg score_left;
 
@@ -116,7 +114,7 @@ module pongtop (
 	)
 	ball_mod(
 		.clk(slw_clk),
-		.reset(ball_reset),
+		.reset(reset),
 		.left_paddle_y(left_paddle_y),
 		.right_paddle_y(right_paddle_y),
 		.score_right(score_right),
@@ -125,19 +123,13 @@ module pongtop (
 		.ball_pos_y(ball_y)
 	);
 
-	// wire [2:0] left_score;
-	// wire [2:0] right_score;
-
 	score score_mod(
-		.clk(CLOCK_50),
+		.clk(slw_clk),
 		.reset(reset),
 		.score_right(score_right),
 		.score_left(score_left),
-		// .left_score_out(left_score),
-		// .right_score_out(right_score),
-		.right_hex(HEX0_D),
-		.left_hex(HEX1_D),
-		.score_reset(score_reset)
+		.right_hex(HEX0_D[6:0]),
+		.left_hex(HEX1_D[6:0])
 	);
 
 	// assign LEDG[2:0] = score_right[2:0];
