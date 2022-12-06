@@ -8,6 +8,7 @@
 module pongtop (
 	input CLOCK_50,
 	input [2:0] BUTTON,
+	output [9:0] LEDG,
 	output [6:0] HEX0_D, 	// Right score output
 	output [6:0] HEX1_D,  // Left score output
 	output wire	[3:0]	VGA_R,		//Output Red
@@ -68,6 +69,8 @@ module pongtop (
 	localparam MAX_COUNT = 20'd614400; 
 
 	// Pong modules
+	wire reset = ~BUTTON[2];
+	
 	reg slw_clk;
 
 	slow_clock 
@@ -82,7 +85,7 @@ module pongtop (
 
 	// Paddle state and player input
 	// reg paddle_state [19:0];
-	wire [9:0] left_paddle_y = 10'd217;
+	wire [9:0] left_paddle_y = 10'd257;
 	wire [9:0] right_paddle_y = 10'd217;
 	// paddles paddle_mod(
 	// 	.clk(slwclk), 
@@ -94,6 +97,8 @@ module pongtop (
 	// Ball state, collision detection, score detection
 	reg signed [10:0] ball_x;
 	reg signed [10:0] ball_y;
+	wire score_reset;
+	wire ball_reset = (reset || score_reset) ? 1 : 0;
 	reg score_right;
 	reg score_left;
 
@@ -111,7 +116,7 @@ module pongtop (
 	)
 	ball_mod(
 		.clk(slw_clk),
-		.reset(reset),
+		.reset(ball_reset),
 		.left_paddle_y(left_paddle_y),
 		.right_paddle_y(right_paddle_y),
 		.score_right(score_right),
@@ -120,18 +125,23 @@ module pongtop (
 		.ball_pos_y(ball_y)
 	);
 
-	wire score_reset = (score_left || score_right) ? 1 : 0;
-	wire reset = (~BUTTON[2] || score_reset) ? 1 : 0;
+	// wire [2:0] left_score;
+	// wire [2:0] right_score;
 
-	// Score and game over states
-	// reg [5:0] current_score;
-	// reg game_over;
-	// score score_mod(
-	// 	.reset(BUTTON[2]),
-	// 	.score_state(score_state[1:0]),
-	// 	.current_score(current_score[5:0]),
-	// 	.game_over(game_over)
-	// );
+	score score_mod(
+		.clk(CLOCK_50),
+		.reset(reset),
+		.score_right(score_right),
+		.score_left(score_left),
+		// .left_score_out(left_score),
+		// .right_score_out(right_score),
+		.right_hex(HEX0_D),
+		.left_hex(HEX1_D),
+		.score_reset(score_reset)
+	);
+
+	// assign LEDG[2:0] = score_right[2:0];
+	// assign LEDG[9:7] = score_left[2:0];
 
 	// This module holds all of the different draw modules (paddles, screen edge,
 	// ball, score) and outputs when pixels should be white or black

@@ -47,13 +47,6 @@ module testscore();
 	 * forth to test the score incrementing */
 	always
 	begin
-		#54 
-		clk = ~clk;
-		score_right = 1'b0;
-		score_left = 1'b1;
-		#54;
-		clk = ~clk;
-		score_right = 1'b1;
-		score_left = 1'b0;
+		#54 clk = ~clk;
 	end
 endmodule
