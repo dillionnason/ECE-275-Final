@@ -48,25 +48,24 @@ module pongtop (
 		.pixel_cnt(pixel_cnt)
 	);
 
-	// Invert the buttons as they are active low
-	wire reset = ~BUTTON[2];
 
 	// Parameters for the pong modules
+	// Need to be signed
 	localparam RIGHT_BOUNDARY = 637;
 	localparam LEFT_BOUNDARY = 3;
 	localparam TOP_BOUNDARY = 3;
 	localparam BOTTOM_BOUNDARY = 477;
-	localparam PLAYER_PADDLE_X = 10'd10;
-	localparam AI_PADDLE_X = 10'd620;
-	localparam PADDLE_WIDTH = 10'd10;
-	localparam PADDLE_HEIGHT = 10'd46;
+	localparam PLAYER_PADDLE_X = 10;
+	localparam AI_PADDLE_X = 620;
+	localparam PADDLE_WIDTH = 10;
+	localparam PADDLE_HEIGHT = 46;
 	localparam BALL_SIZE = 7;
 	
-	/* This tells the slow clock module how much to count. NEEDS TO BE 28 BITS. 
+	/* This tells the slow clock module how much to count. 
 	 * Since it's based on the 18.43MHz pixel clock 1 cycle is 54 ns, 
 	 * so total slow clock cycle will be MAX_COUNT * 54ns. 
 	 * Works best if it is a multiple of 307200 (1 frame) */
-	localparam MAX_COUNT = 28'd614400; 
+	localparam MAX_COUNT = 20'd614400; 
 
 	// Pong modules
 	reg slw_clk;
@@ -83,6 +82,8 @@ module pongtop (
 
 	// Paddle state and player input
 	// reg paddle_state [19:0];
+	wire [9:0] left_paddle_y = 10'd217;
+	wire [9:0] right_paddle_y = 10'd217;
 	// paddles paddle_mod(
 	// 	.clk(slwclk), 
 	// 	.reset(BUTTON[2]), 
@@ -102,11 +103,17 @@ module pongtop (
 		.RIGHT_BOUNDARY(RIGHT_BOUNDARY),
 		.LEFT_BOUNDARY(LEFT_BOUNDARY),
 		.TOP_BOUNDARY(TOP_BOUNDARY),
-		.BOTTOM_BOUNDARY(BOTTOM_BOUNDARY)
+		.BOTTOM_BOUNDARY(BOTTOM_BOUNDARY),
+		.PADDLE_HEIGHT(PADDLE_HEIGHT),
+		.PADDLE_WIDTH(PADDLE_WIDTH),
+		.PLAYER_PADDLE_X(PLAYER_PADDLE_X),
+		.AI_PADDLE_X(AI_PADDLE_X)
 	)
 	ball_mod(
 		.clk(slw_clk),
 		.reset(reset),
+		.left_paddle_y(left_paddle_y),
+		.right_paddle_y(right_paddle_y),
 		.score_right(score_right),
 		.score_left(score_left),
 		.ball_pos_x(ball_x),
@@ -151,6 +158,8 @@ module pongtop (
 	display_mod(
 		.ball_x(unsigned_ball_x[9:0]),
 		.ball_y(unsigned_ball_y[9:0]),
+		.left_paddle(left_paddle_y),
+		.right_paddle(right_paddle_y),
 		.X_pix(X_pix),
 		.Y_pix(Y_pix),
 		.draw(draw),
