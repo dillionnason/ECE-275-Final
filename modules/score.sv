@@ -3,66 +3,56 @@ module score (
 	input reset,
 	input reg score_right,
 	input reg score_left,
-	output [2:0] left_score_out, //This will be the player 1 score
-  output [2:0] right_score_out, //This will be the player 2/ai score
 	output [6:0] right_hex,
 	output [6:0] left_hex,
 	output game_over
 );
 	// scores
-	reg [2:0] left_score;
-	reg [2:0] right_score;
+	reg [3:0] left_score;
+	reg [3:0] right_score;
+	reg end_game;
+	wire [3:0] next_left_score;
+	wire [3:0] next_right_score;
 
 	// reset state
-	always @(posedge reset) 
+	always @(posedge reset or posedge clk) 
 	begin
-		left_score <= 3'b000;
-		right_score <= 3'b000;
+		if (reset)
+		begin
+			left_score <= 4'b0000;
+			right_score <= 4'b0000;
+			end_game <= 1'b0;
+		end
+
+		else 
+		begin
+			if (next_left_score > 4'b0111)
+				end_game <= 1'b1;
+			else
+				left_score <= next_left_score;
+
+			if (next_right_score > 4'b0111)
+				end_game <= 1'b1;
+			else
+				right_score <= next_right_score;
+		end
 	end
-
-	// score incrementing
-	always @(score_left, score_right) 
-	begin
-		if (score_left)
-			left_score = left_score + 3'd1;
-		
-		if (score_right) 
-			right_score = right_score + 3'd1;
-	end
-
-	// convert left score to BCD
-	wire [2:0] left_binary_in = left_score[2:0];
-	reg [2:0] left_binary;
-	reg [3:0] left_bcd;
-
-	always @(posedge clk) 
-	begin
-			left_binary = left_binary_in;
-			left_bcd = 4'd0;
-
-			for (int i = 0; i < 3; i = i + 1) 
-			begin
-					left_bcd = left_bcd << 1;
-					left_bcd[0] = left_binary[3];
-					left_binary = left_binary << 1;
-
-					if (left_bcd >= 4'd5)
-							left_bcd = left_bcd + 4'd3;
-			end
-
-			left_bcd = left_bcd << 1;
-			left_bcd[0] = left_binary[3];
-	end
+	
+	assign next_right_score = (score_right) ? right_score + 1 : right_score;
+	assign next_left_score = (score_left) ? left_score + 1 : left_score;
 
 	// convert scores to BCD
-  BCD_Display left_score_hex (
-		.D(left_bcd[3:0]),
+  BCD_Display left_score_bcd (
+		.D(left_score[3:0]),
 		.LED(left_hex[6:0])
 	);
 
-	// score outputs
-	assign left_score_out[2:0] = left_score[2:0];
-	assign right_score_out[2:0] = right_score[2:0];
+	BCD_Display right_score_bcd (
+		.D(right_score[3:0]),
+		.LED(right_hex[6:0])
+	);
+
+	assign game_over = end_game;
 endmodule
 
 // Binary to BCD

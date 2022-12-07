@@ -8,6 +8,7 @@
 module pongtop (
 	input CLOCK_50,
 	input [2:0] BUTTON,
+	output [9:0] LEDG,
 	output [6:0] HEX0_D, 	// Right score output
 	output [6:0] HEX1_D,  // Left score output
 	output wire	[3:0]	VGA_R,		//Output Red
@@ -68,6 +69,8 @@ module pongtop (
 	localparam MAX_COUNT = 20'd614400; 
 
 	// Pong modules
+	wire reset = ~BUTTON[2];
+	
 	reg slw_clk;
 
 	slow_clock 
@@ -83,7 +86,7 @@ module pongtop (
 	// Paddle state and player input
 	// reg paddle_state [19:0];
 	wire [9:0] left_paddle_y = 10'd217;
-	wire [9:0] right_paddle_y = 10'd217;
+	wire [9:0] right_paddle_y = 10'd257;
 	// paddles paddle_mod(
 	// 	.clk(slwclk), 
 	// 	.reset(BUTTON[2]), 
@@ -96,6 +99,7 @@ module pongtop (
 	reg signed [10:0] ball_y;
 	reg score_right;
 	reg score_left;
+	wire game_over;
 
 	ball 
 	#(
@@ -112,6 +116,7 @@ module pongtop (
 	ball_mod(
 		.clk(slw_clk),
 		.reset(reset),
+		.game_over(game_over),
 		.left_paddle_y(left_paddle_y),
 		.right_paddle_y(right_paddle_y),
 		.score_right(score_right),
@@ -121,10 +126,13 @@ module pongtop (
 	);
 
 	score score_mod(
-		.clk(CLOCK_50),
+		.clk(slw_clk),
 		.reset(reset),
-		.right_hex(HEX0_D),
-		.left_hex(HEX1_D)
+		.score_right(score_right),
+		.score_left(score_left),
+		.right_hex(HEX0_D[6:0]),
+		.left_hex(HEX1_D[6:0]),
+		.game_over(game_over)
 	);
 
 	// This module holds all of the different draw modules (paddles, screen edge,
