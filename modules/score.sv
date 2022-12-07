@@ -1,3 +1,15 @@
+/*	score.sv
+ * 
+ *	Author: Dillion Nason 
+ *  Github: https://github.com/dillionnason
+ * 
+ *  Author: Joshua Deveau
+ *  Github: https://github.com/Altbot69
+ *  
+ *  Reads current score state and increments score accordingly.
+ *  Outputs to Hex displays.
+ */
+
 module score (
 	input clk,
 	input reset,
@@ -7,14 +19,14 @@ module score (
 	output [6:0] left_hex,
 	output game_over
 );
-	// scores
+	// 1. Registers
 	reg [3:0] left_score;
 	reg [3:0] right_score;
 	reg end_game;
 	wire [3:0] next_left_score;
 	wire [3:0] next_right_score;
 
-	// reset state
+	// 2. Next state -> current state
 	always @(posedge reset or posedge clk) 
 	begin
 		if (reset)
@@ -26,6 +38,9 @@ module score (
 
 		else 
 		begin
+			/* If the next score is greater than 7 don't update the current value,
+			 * set the game_over flag (end_game maps to that below), which tells the
+			 * ball module to stop updating and wait for the reset signal */
 			if (next_left_score > 4'b0111)
 				end_game <= 1'b1;
 			else
@@ -38,11 +53,13 @@ module score (
 		end
 	end
 	
+	// 3. Map inputs + state -> next state
+	// This will increment the next score value
 	assign next_right_score = (score_right) ? right_score + 1 : right_score;
 	assign next_left_score = (score_left) ? left_score + 1 : left_score;
 
-	// convert scores to BCD
-  BCD_Display left_score_bcd (
+	// 4. Map state -> output
+  	BCD_Display left_score_bcd (
 		.D(left_score[3:0]),
 		.LED(left_hex[6:0])
 	);

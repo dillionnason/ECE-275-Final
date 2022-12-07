@@ -1,3 +1,11 @@
+/*	paddles.sv
+ * 
+ *  Author: Joshua Deveau
+ *  Github: https://github.com/Altbot69
+ *  
+ *  Reads player input and ball positions to update paddle position
+ */
+ 
 module paddles (
 	input wire clk,
 	input wire reset,
@@ -23,6 +31,7 @@ module paddles (
 		.ball_pos_y(ball_pos_y),
 		.ai_paddle(ai_paddle)
 	);
+
 endmodule
 
 // Left paddle
@@ -35,8 +44,7 @@ module player_paddle(
 	
 );
 	// Looks at button inputs to move
-	//1.  Registers
-	reg [9:0] player_paddle_x_position; //Can remain the same
+	// 1.  Registers
 	reg [9:0] player_paddle_y_position; //This will be changeable given certain conditions
 	reg [9:0] player_paddle_next_y_position;
 
@@ -103,7 +111,6 @@ module ai_paddle(
 	 * So it will look something like this below
 	 */
 
-	reg [9:0] ai_paddle_x_position; //Should remain the same
 	reg [9:0] ai_paddle_y_position; //This will be changeable given certain conditions
 	reg [9:0] ai_paddle_next_y_position;
 	
@@ -126,7 +133,5 @@ module ai_paddle(
 	end
 
 	assign ai_paddle = ai_paddle_y_position; 
-	
-	//The thing that would make this easier or harder is all dependant on the speed of the ai paddle
-	
+
 endmodule

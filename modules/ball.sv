@@ -1,3 +1,11 @@
+/*	ball.sv
+ * 
+ *	Author: Dillion Nason 
+ *  Github: https://github.com/dillionnason
+ *  
+ *  Updates ball position, calculates collisions, sets score signals
+ */
+
 module ball 
 #(
 	parameter BALL_SIZE = 10,
@@ -23,7 +31,7 @@ module ball
 	output reg signed [10:0] ball_pos_y
 );
 
-	// these all have +1 bit from the original design for the sign bit
+	// 1. Registers
 	reg signed [2:0] v_x;
 	reg signed [2:0] v_y;
 	reg signed [2:0] next_v_x;
@@ -43,14 +51,14 @@ module ball
 	reg next_left_collision;
 	reg next_right_collision;
 
-	// passes the paddle positions to the procedural blocks
+	// passes the paddle positions to the procedural blocks (converting them to signed)
 	wire [10:0] left_paddle_pos_unsigned = { 1'b0, left_paddle_y[9:0] };
 	wire [10:0] right_paddle_pos_unsigned = { 1'b0, right_paddle_y[9:0] };
 
 	wire signed [10:0] left_paddle_pos = $signed(left_paddle_pos_unsigned);
 	wire signed [10:0] right_paddle_pos = $signed(right_paddle_pos_unsigned);
 
-	// update state
+	// 2. Next state -> current state
 	always @(posedge clk or posedge reset) 
 	begin
 		if (reset) 
@@ -74,7 +82,8 @@ module ball
 		end
 	end
 
-	// inputs + state -> next state
+	// 3. Map inputs + state -> next state
+	// calculates collisions and score conditions
 	always @(*)  
 	begin
 		paddle_collision = 1'b0;
@@ -82,7 +91,7 @@ module ball
 		next_right_collision = 1'b0;
 
 		/*****************************************************************
-		 * 									RIGHT PADDLE COLLISION 										   *
+		 * 					RIGHT PADDLE COLLISION 						 *
 		 *****************************************************************/
 		if ((pos_x + v_x) >= (AI_PADDLE_X - BALL_SIZE) && (pos_x + v_x) <= (AI_PADDLE_X + PADDLE_WIDTH)) // is it entering the right paddles column
 		begin
@@ -149,7 +158,7 @@ module ball
 		end
 
 		/*****************************************************************
-		 * 									LEFT PADDLE COLLISION 										   *
+		 * 					 LEFT PADDLE COLLISION 						 *
 		 *****************************************************************/
 		else if ((pos_x + v_x) <= (PLAYER_PADDLE_X + PADDLE_WIDTH) && (pos_x + v_x) >= (PLAYER_PADDLE_X)) // is it entering the left paddles column
 		begin
@@ -216,7 +225,7 @@ module ball
 		end
 
 		/*****************************************************************
-		 * 											EDGE COLLISIONS    										   *
+		 * 						EDGE COLLISIONS    				   		 *
 		 *****************************************************************/
 		if (paddle_collision == 1'b0)
 		begin
@@ -257,7 +266,10 @@ module ball
 				next_left_collision = 1'b1;
 			end
 
-			else  // no collision
+			/*****************************************************************
+			* 						  NO COLLISIONS    				   		 *
+			*****************************************************************/
+			else
 			begin
 				next_v_y <= v_y;
 				next_v_x <= v_x;
@@ -267,7 +279,7 @@ module ball
 		end
 	end
 
-	// inputs + state -> output
+	// 4. Map state -> output
 	assign ball_pos_x = pos_x;
 	assign ball_pos_y = pos_y;
 	assign score_right = right_collision;

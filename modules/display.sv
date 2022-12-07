@@ -14,16 +14,15 @@ module display
 )
 
 (
-	//input [19:0] paddle_state,
 	input [9:0] ball_x,
 	input [9:0] ball_y,
 	input reg [9:0] player_paddle, //left paddle
-	input reg [9:0] ai_paddle, //Right paddle
+	input reg [9:0] ai_paddle,     //Right paddle
 	input [9:0] X_pix,
 	input [9:0] Y_pix,
 	output draw
 );
-	// number of boxes
+	// number of boxes for generate block
 	localparam N = 3;
 
 	// Parameters for each box
@@ -53,7 +52,8 @@ module display
 
 	// Draws a border on the screen
 	reg screen_edge;
-	screen_boundary #(
+	screen_boundary 
+	#(
 		.RIGHT_BOUND(RIGHT_BOUNDARY),
 		.LEFT_BOUND(LEFT_BOUNDARY),
 		.TOP_BOUND(TOP_BOUNDARY),
