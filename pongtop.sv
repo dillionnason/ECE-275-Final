@@ -1,13 +1,27 @@
+/*	pongtop.sv
+ * 
+ *	Author: Dillion Nason 
+ *  Github: https://github.com/dillionnason
+ * 
+ *  Author: Joshua Deveau
+ *  Github: https://github.com/Altbot69
+ *  
+ *  ECE 275 Final Project
+ *  Pong implemented in System Verilog on the DE0 Development Board
+ */
+
 `include "modules/slow_clock.sv"
 `include "modules/ball.sv"
-// `include "modules/paddles.sv"
-// `include "modules/score.sv"
+`include "modules/paddles.sv"
+`include "modules/score.sv"
 `include "modules/DE0_VGA.v"
 `include "modules/display.sv"
 
 module pongtop (
+	input CLOCK_50,
 	input [2:0] BUTTON,
-	input wire CLOCK_50,
+	output [6:0] HEX0_D, 	// Right score output
+	output [6:0] HEX1_D,    // Left score output
 	output wire	[3:0]	VGA_R,		//Output Red
 	output wire	[3:0]	VGA_G,		//Output Green
 	output wire	[3:0]	VGA_B,		//Output Blue
@@ -15,20 +29,22 @@ module pongtop (
 	output wire	[0:0]	VGA_VS		//Vertical Sync
 );
 
-	// Display driver stuff
-	wire [9:0] X_pix;				//Location in X of the driver
-	wire [9:0] Y_pix;				//Location in Y of the driver
+	/*************************************************************************
+	 * VGA driver                   										 *
+	 *************************************************************************/
+	wire [9:0] X_pix;		//Location in X of the driver
+	wire [9:0] Y_pix;		//Location in Y of the driver
 
-	wire [0:0] H_visible;		//H_blank?
-	wire [0:0] V_visible;		//V_blank?
+	wire [0:0] H_visible;	//H_blank?
+	wire [0:0] V_visible;	//V_blank?
 
-	wire [0:0] pixel_clk;		//Pixel clock. Every clock a pixel is being drawn. 
-	wire [9:0] pixel_cnt;		//How many pixels have been output.
+	wire [0:0] pixel_clk;	//Pixel clock. Every clock a pixel is being drawn. 
+	wire [9:0] pixel_cnt;	//How many pixels have been output.
 
 	reg	[11:0] pixel_color;	//12 Bits representing color of pixel, 4 bits for R, G, and B
-													//4 bits for Blue are in most significant position, Red in least
+							//4 bits for Blue are in most significant position, Red in least
 	
-	// Pass pins and current pixel values to display driver
+	// Pass pins and current pixel values to VGA driver
 	DE0_VGA VGA_Driver
 	(
 		.clk_50(CLOCK_50),
@@ -47,8 +63,9 @@ module pongtop (
 	);
 
 
-	// Parameters for the pong modules
-	// Need to be signed
+	/*************************************************************************
+	 * Pong parameters              										 *
+	 *************************************************************************/
 	localparam RIGHT_BOUNDARY = 637;
 	localparam LEFT_BOUNDARY = 3;
 	localparam TOP_BOUNDARY = 3;
@@ -65,74 +82,21 @@ module pongtop (
 	 * Works best if it is a multiple of 307200 (1 frame) */
 	localparam MAX_COUNT = 20'd614400; 
 
-	// Pong modules
+	/*************************************************************************
+	 * Pong registers and wires      										 *
+	 *************************************************************************/
+	wire reset = ~BUTTON[2];
 	reg slw_clk;
-
-	slow_clock 
-	#(
-		.MAX_COUNT(MAX_COUNT)
-	) 
-	slw_clk_mod(
-		.fastclock(pixel_clk), 
-		.reset(reset), 
-		.slowclock(slw_clk)
-	);
-
-	// Paddle state and player input
-	// reg paddle_state [19:0];
-	wire [9:0] left_paddle_y = 10'd217;
-	wire [9:0] right_paddle_y = 10'd217;
-	// paddles paddle_mod(
-	// 	.clk(slwclk), 
-	// 	.reset(BUTTON[2]), 
-	// 	.button_up(BUTTON[0]),
-	// 	.button_down(BUTTON[1]),
-	// 	.paddle_state(paddle_state[19:0]));
-
-	// Ball state, collision detection, score detection
 	reg signed [10:0] ball_x;
 	reg signed [10:0] ball_y;
+	wire [9:0] player_paddle;
+	wire [9:0] ai_paddle;
+	// Game state conditions (set by the ball and score modules)
 	reg score_right;
 	reg score_left;
-
-	ball 
-	#(
-		.BALL_SIZE(BALL_SIZE),
-		.RIGHT_BOUNDARY(RIGHT_BOUNDARY),
-		.LEFT_BOUNDARY(LEFT_BOUNDARY),
-		.TOP_BOUNDARY(TOP_BOUNDARY),
-		.BOTTOM_BOUNDARY(BOTTOM_BOUNDARY),
-		.PADDLE_HEIGHT(PADDLE_HEIGHT),
-		.PADDLE_WIDTH(PADDLE_WIDTH),
-		.PLAYER_PADDLE_X(PLAYER_PADDLE_X),
-		.AI_PADDLE_X(AI_PADDLE_X)
-	)
-	ball_mod(
-		.clk(slw_clk),
-		.reset(reset),
-		.left_paddle_y(left_paddle_y),
-		.right_paddle_y(right_paddle_y),
-		.score_right(score_right),
-		.score_left(score_left),
-		.ball_pos_x(ball_x),
-		.ball_pos_y(ball_y)
-	);
-
-	wire score_reset = (score_left || score_right) ? 1 : 0;
-	wire reset = (~BUTTON[2] || score_reset) ? 1 : 0;
-
-	// Score and game over states
-	// reg [5:0] current_score;
-	// reg game_over;
-	// score score_mod(
-	// 	.reset(BUTTON[2]),
-	// 	.score_state(score_state[1:0]),
-	// 	.current_score(current_score[5:0]),
-	// 	.game_over(game_over)
-	// );
-
-	// This module holds all of the different draw modules (paddles, screen edge,
-	// ball, score) and outputs when pixels should be white or black
+	wire game_over;
+	// current "draw state", set by the display module based on the 
+	// current X_pix and Y_pix outputs from the VGA driver
 	reg draw;
 	/* This is a little hacky.
 	 * The ball module needs the positions values to be signed (so, plus one bit
@@ -145,6 +109,74 @@ module pongtop (
 	assign unsigned_ball_x = $unsigned(ball_x);
 	assign unsigned_ball_y = $unsigned(ball_y);
 
+	/*************************************************************************
+	 * Pong modules                  										 *
+	 *************************************************************************/
+	
+	// takes the 18.43MHz pixel clock and converts it to a 30Hz clock
+	slow_clock 
+	#(
+		.MAX_COUNT(MAX_COUNT)
+	) 
+	slw_clk_mod(
+		.fastclock(pixel_clk), 
+		.reset(reset), 
+		.slowclock(slw_clk)
+	);
+
+	// Handles updating ball position, calculating collisions, score conditions
+	ball 
+	#(
+		.BALL_SIZE(BALL_SIZE),
+		.RIGHT_BOUNDARY(RIGHT_BOUNDARY),
+		.LEFT_BOUNDARY(LEFT_BOUNDARY),
+		.TOP_BOUNDARY(TOP_BOUNDARY),
+		.BOTTOM_BOUNDARY(BOTTOM_BOUNDARY),
+		.PADDLE_HEIGHT(PADDLE_HEIGHT),
+		.PADDLE_WIDTH(PADDLE_WIDTH),
+		.PLAYER_PADDLE_X(PLAYER_PADDLE_X),
+		.AI_PADDLE_X(AI_PADDLE_X)
+	)
+	ball_mod
+	(
+		.clk(slw_clk),
+		.reset(reset),
+		.game_over(game_over),
+		.left_paddle_y(player_paddle),
+		.right_paddle_y(ai_paddle),
+		.score_right(score_right),
+		.score_left(score_left),
+		.ball_pos_x(ball_x),
+		.ball_pos_y(ball_y)
+	);	
+		
+	// Handles player input, moving paddles
+  	paddles paddle_mod
+	(
+		.clk(slw_clk),
+		.reset(reset),
+		.button_up(~BUTTON[1]),
+		.button_down(~BUTTON[0]),
+		.ball_pos_y(ball_y),
+		.player_paddle(player_paddle),
+		.ai_paddle(ai_paddle)
+	);
+
+	// Handles incrementing score based on ball module outputs, outputing to Hex displays, 
+	// outputing game_over signal to the ball if score > 7
+	score score_mod
+	(
+		.clk(slw_clk),
+		.reset(reset),
+		.score_right(score_right),
+		.score_left(score_left),
+		.right_hex(HEX0_D[6:0]),
+		.left_hex(HEX1_D[6:0]),
+		.game_over(game_over)
+	);
+
+	// This module holds all of the different draw modules (paddles, screen edge,
+	// ball, score) and outputs when pixels should be white or black
 	display 
 	#(
 		.RIGHT_BOUNDARY(RIGHT_BOUNDARY),
@@ -156,11 +188,12 @@ module pongtop (
 		.PADDLE_WIDTH(PADDLE_WIDTH),
 		.BALL_SIZE(BALL_SIZE)
 	)
-	display_mod(
+	display_mod
+	(
 		.ball_x(unsigned_ball_x[9:0]),
 		.ball_y(unsigned_ball_y[9:0]),
-		.left_paddle(left_paddle_y),
-		.right_paddle(right_paddle_y),
+		.player_paddle(player_paddle),
+		.ai_paddle(ai_paddle),
 		.X_pix(X_pix),
 		.Y_pix(Y_pix),
 		.draw(draw)

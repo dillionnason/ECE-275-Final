@@ -14,16 +14,15 @@ module display
 )
 
 (
-	//input [19:0] paddle_state,
 	input [9:0] ball_x,
 	input [9:0] ball_y,
-	input [9:0] left_paddle,
-	input [9:0] right_paddle,
+	input reg [9:0] player_paddle, //left paddle
+	input reg [9:0] ai_paddle,     //Right paddle
 	input [9:0] X_pix,
 	input [9:0] Y_pix,
 	output draw
 );
-	// number of boxes
+	// number of boxes for generate block
 	localparam N = 3;
 
 	// Parameters for each box
@@ -31,7 +30,7 @@ module display
 	// 	2. AI paddle (right)
 	// 	3. Ball
 	wire [9:0] boxes_x [N] = '{ PLAYER_PADDLE_X, AI_PADDLE_X, ball_x[9:0] };
-	wire [9:0] boxes_y [N] = '{ left_paddle[9:0], right_paddle[9:0], ball_y[9:0] };
+	wire [9:0] boxes_y [N] = '{ player_paddle[9:0], ai_paddle[9:0], ball_y[9:0] };
 	wire [9:0] boxes_width [N] = '{ PADDLE_WIDTH, PADDLE_WIDTH, BALL_SIZE };
 	wire [9:0] boxes_height [N] = '{ PADDLE_HEIGHT, PADDLE_HEIGHT, BALL_SIZE };
 	wire [N-1:0] boxes;
@@ -53,7 +52,8 @@ module display
 
 	// Draws a border on the screen
 	reg screen_edge;
-	screen_boundary #(
+	screen_boundary 
+	#(
 		.RIGHT_BOUND(RIGHT_BOUNDARY),
 		.LEFT_BOUND(LEFT_BOUNDARY),
 		.TOP_BOUND(TOP_BOUNDARY),

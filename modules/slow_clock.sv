@@ -1,3 +1,15 @@
+/*	slow_clock.sv
+ * 
+ *	Author: Dillion Nason 
+ *  Github: https://github.com/dillionnason
+ * 
+ *  Author: Joshua Deveau
+ *  Github: https://github.com/Altbot69
+ *  
+ *  Takes fastclock (pixel_clk) and outputs a synced slower clock signal.
+ *  Counts to 614400 (two frames).
+ */
+
 module slow_clock
 #(
 	parameter MAX_COUNT
