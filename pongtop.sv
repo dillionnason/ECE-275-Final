@@ -20,8 +20,9 @@
 module pongtop (
 	input CLOCK_50,
 	input [2:0] BUTTON,
+	input [9:0] SW,
 	output [6:0] HEX0_D, 	// Right score output
-	output [6:0] HEX1_D,    // Left score output
+	output [6:0] HEX3_D,    // Left score output
 	output wire	[3:0]	VGA_R,		//Output Red
 	output wire	[3:0]	VGA_G,		//Output Green
 	output wire	[3:0]	VGA_B,		//Output Blue
@@ -75,52 +76,63 @@ module pongtop (
 	localparam PADDLE_WIDTH = 10;
 	localparam PADDLE_HEIGHT = 46;
 	localparam BALL_SIZE = 7;
+
+	/*************************************************************************
+	 * Pong registers and wires      										 *
+	 *************************************************************************/
+	 // difficulty settings
+	reg player_speed;
+	reg ai_speed;
+	assign player_speed = (SW[1]) ? 1 : 0;
+	assign ai_speed = (SW[0]) ? 1 : 0;
 	
 	/* This tells the slow clock module how much to count. 
 	 * Since it's based on the 18.43MHz pixel clock 1 cycle is 54 ns, 
 	 * so total slow clock cycle will be MAX_COUNT * 54ns. 
 	 * Works best if it is a multiple of 307200 (1 frame) */
-	localparam MAX_COUNT = 20'd614400; 
+	reg [19:0] clock_speed;
+	assign clock_speed = (SW[9]) ? 20'd307200 : 20'd614400; 
 
-	/*************************************************************************
-	 * Pong registers and wires      										 *
-	 *************************************************************************/
+	// color settings
+	reg color;
+	assign color = (SW[8]) ? 1 : 0;
+
 	wire reset = ~BUTTON[2];
-	reg slw_clk;
-	reg signed [10:0] ball_x;
-	reg signed [10:0] ball_y;
+	wire slw_clk;
+	// Paddle positions
 	wire [9:0] player_paddle;
 	wire [9:0] ai_paddle;
-	// Game state conditions (set by the ball and score modules)
-	reg score_right;
-	reg score_left;
-	wire game_over;
-	// current "draw state", set by the display module based on the 
-	// current X_pix and Y_pix outputs from the VGA driver
-	reg draw;
 	/* This is a little hacky.
 	 * The ball module needs the positions values to be signed (so, plus one bit
 	 * for sign bit), whereas the display module is simpler with unsigned
 	 * values (since no negative pixels). Since the max values are only 10 bits 
  	 * rather than 11, this section converts the values to unsigned, and then 
 	 * the last bit is chopped off when they are connected to the display module */
+	reg signed [10:0] ball_x;
+	reg signed [10:0] ball_y;
 	reg [10:0] unsigned_ball_x;
 	reg [10:0] unsigned_ball_y;
 	assign unsigned_ball_x = $unsigned(ball_x);
 	assign unsigned_ball_y = $unsigned(ball_y);
+	// Game state conditions (set by the ball and score modules)
+	reg score_right;
+	reg score_left;
+	wire game_over;
+	// current "draw state", set by the display module based on the 
+	// current X_pix and Y_pix outputs from the VGA driver
+	reg red;
+	reg green;
+	reg blue;
 
 	/*************************************************************************
 	 * Pong modules                  										 *
 	 *************************************************************************/
 	
 	// takes the 18.43MHz pixel clock and converts it to a 30Hz clock
-	slow_clock 
-	#(
-		.MAX_COUNT(MAX_COUNT)
-	) 
-	slw_clk_mod(
+	slow_clock slw_clk_mod(
 		.fastclock(pixel_clk), 
 		.reset(reset), 
+		.clock_speed(clock_speed),
 		.slowclock(slw_clk)
 	);
 
@@ -157,6 +169,8 @@ module pongtop (
 		.reset(reset),
 		.button_up(~BUTTON[1]),
 		.button_down(~BUTTON[0]),
+		.player_speed(player_speed),
+		.ai_speed(ai_speed),
 		.ball_pos_y(ball_y),
 		.player_paddle(player_paddle),
 		.ai_paddle(ai_paddle)
@@ -170,8 +184,8 @@ module pongtop (
 		.reset(reset),
 		.score_right(score_right),
 		.score_left(score_left),
-		.right_hex(HEX0_D[6:0]),
-		.left_hex(HEX1_D[6:0]),
+		.right_hex(HEX3_D[6:0]),
+		.left_hex(HEX0_D[6:0]),
 		.game_over(game_over)
 	);
 
@@ -196,17 +210,24 @@ module pongtop (
 		.ai_paddle(ai_paddle),
 		.X_pix(X_pix),
 		.Y_pix(Y_pix),
-		.draw(draw)
+		.color_switches(SW[4:2]),
+		.reset(reset),
+		.red(red),
+		.green(green),
+		.blue(blue)
 	);
 
 	// Takes the output from the display module and tells the VGA driver what to
 	// draw based on that
+	wire [3:0] red_sub = {4{red}};
+	wire [3:0] green_sub = {4{green}};
+	wire [3:0] blue_sub = {4{blue}};
+
+	wire [11:0] pix_col = (color) ? { red_sub, green_sub, blue_sub } :
+						  (red | green | blue) ? {12{1'b1}} : 12'd0;
 	always @(posedge pixel_clk)
 	begin
-		if (draw)
-			pixel_color <= 12'b1111_1111_1111;
-		else
-			pixel_color <= 12'b0000_0000_0000;
+		pixel_color <= pix_col;
 	end
 
 endmodule

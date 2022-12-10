@@ -11,16 +11,14 @@
  */
 
 module slow_clock
-#(
-	parameter MAX_COUNT
-)
-
 (
 	input wire fastclock,
 	input wire reset,
+	input wire [19:0] clock_speed,
 	output reg slowclock
 );
 	// 1. Registers/Flip-flops
+	reg [19:0] current_speed;
 	reg [19:0] count;	
 	wire [19:0] dinputs;
 
@@ -34,10 +32,11 @@ module slow_clock
 
 	// 2. Combinational Logic that maps from 
 		// inputs + current state -> next state
-	assign dinputs = (count == MAX_COUNT) ? 20'd0 : count + 1;
+	assign dinputs = (count == current_speed) ? 20'd0 : count + 1;
+	assign current_speed = (count == 20'd0) ? clock_speed : current_speed;
 	
 	// 3. Combinational Logic that maps from
 		// Mealy: inputs + current state -> output
 		// Moore: current state -> output
-	assign slowclock = (count <= (MAX_COUNT >> 1)) ? 1'b1 : 1'b0;
+	assign slowclock = (count <= (current_speed >> 1)) ? 1'b1 : 1'b0;
 endmodule
